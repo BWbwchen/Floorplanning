@@ -40,8 +40,10 @@ public:
     vector<Cell *> special_node;
 
     void get_initial_solution(vector<intg> &s);
-    intg start_sa(vector<intg> &s, SA_setting &setting);
-    intg calculate_cost(vector<intg> &e);
+    intg start_sa(vector<intg> &s,
+                  SA_setting &setting,
+                  bool outline_driven = false);
+    intg calculate_cost(vector<intg> &e, bool outline_driven = false);
     intg get_move_type(mt19937 &gen);
     fp get_accept_prob(mt19937 &gen);
     vector<intg> perturb(vector<intg> &s, intg move_type);
@@ -78,7 +80,8 @@ public:
         sa_setting.k = 5;
         sa_setting.t0 = 1000.0;
 
-        intg wl = start_sa(sol, sa_setting);
+        start_sa(sol, sa_setting, true);
+        intg wl = start_sa(sol, sa_setting, false);
 
         return Output(&(data.cell_array), wl);
     }

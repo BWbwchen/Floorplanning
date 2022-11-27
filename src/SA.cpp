@@ -104,7 +104,7 @@ intg SA::calculate_wirelength() {
     return answer;
 }
 
-intg SA::calculate_cost(vector<intg> &e) {
+intg SA::calculate_cost(vector<intg> &e, bool outline_driven) {
     Cell *root = build_tree(e);
     intg min_area = numeric_limits<intg>::max();
     intg exceed_area = 0;
@@ -132,7 +132,11 @@ intg SA::calculate_cost(vector<intg> &e) {
     }
 
     root->update_cell(answer_version, Loc(0, 0));
-    return min_area * 10 + calculate_wirelength();
+
+    if (outline_driven)
+        return min_area;
+
+    return min_area * 20 + calculate_wirelength();
 }
 
 
@@ -159,7 +163,7 @@ vector<intg> SA::perturb(vector<intg> &e, intg move_type) {
     return s;
 }
 
-intg SA::start_sa(vector<intg> &s, SA_setting &setting) {
+intg SA::start_sa(vector<intg> &s, SA_setting &setting, bool outline_driven) {
     intg MT, M, uphill;
     MT = M = uphill = 0;
 
@@ -171,7 +175,7 @@ intg SA::start_sa(vector<intg> &s, SA_setting &setting) {
 
     intg best_cost = 0, cost = 0;
 
-    best_cost = cost = calculate_cost(best);
+    best_cost = cost = calculate_cost(best, outline_driven);
 
     fp t0 = setting.t0;
     intg epoch = 0;
@@ -179,49 +183,52 @@ intg SA::start_sa(vector<intg> &s, SA_setting &setting) {
         goto END;
 
     do {
-        MT = uphill = reject = 0;
         do {
-            intg move_type = get_move_type(generator);
-            NE = perturb(E, move_type);
+            MT = uphill = reject = 0;
+            do {
+                intg move_type = get_move_type(generator);
+                NE = perturb(E, move_type);
 
-            MT += 1;
+                MT += 1;
 
-            intg diff = 0;
-            for (int i = 0; i < E.size(); ++i) {
-                if (E[i] != NE[i])
-                    diff++;
-            }
-            // cout << "Diff " << diff << ", with type " << move_type << endl;
-            intg new_cost = calculate_cost(NE);
-            intg deltaCost = new_cost - cost;
-            if (deltaCost < 0 ||
-                get_accept_prob(generator) < exp(-1 * deltaCost / t0)) {
-                if (deltaCost > 0)
-                    uphill += 1;
-
-                E = NE;
-                cost = new_cost;
-
-                if (cost < best_cost) {
-                    best = E;
-                    best_cost = cost;
-                    if (best_cost == 0)
-                        goto END;
+                intg diff = 0;
+                for (int i = 0; i < E.size(); ++i) {
+                    if (E[i] != NE[i])
+                        diff++;
                 }
-            } else {
-                reject += 1;
-            }
-        } while (uphill <= N && MT <= 2 * N);
-        cout << "Epoch " << epoch++ << " with cost: " << best_cost
-             << " and temperature: " << t0 << endl;
-        cout << "Uphill/reject: " << uphill << " / " << reject << endl;
-        cout << "N, MT: " << N << ", " << MT << endl;
-        t0 = sa_scheduling(t0, setting);
-    } while (reject / MT <= 0.95 && t0 >= setting.c);
+                // cout << "Diff " << diff << ", with type " << move_type <<
+                // endl;
+                intg new_cost = calculate_cost(NE, outline_driven);
+                intg deltaCost = new_cost - cost;
+                if (deltaCost < 0 ||
+                    get_accept_prob(generator) < exp(-1 * deltaCost / t0)) {
+                    if (deltaCost > 0)
+                        uphill += 1;
+
+                    E = NE;
+                    cost = new_cost;
+
+                    if (cost < best_cost) {
+                        best = E;
+                        best_cost = cost;
+                        if (best_cost == 0)
+                            goto END;
+                    }
+                } else {
+                    reject += 1;
+                }
+            } while (uphill <= N && MT <= 2 * N);
+            cout << "Epoch " << epoch++ << " with cost: " << best_cost
+                 << " and temperature: " << t0 << endl;
+            cout << "Uphill/reject: " << uphill << " / " << reject << endl;
+            cout << "N, MT: " << N << ", " << MT << endl;
+            t0 = sa_scheduling(t0, setting);
+        } while (reject / MT <= 0.95 && t0 >= setting.c);
+    } while (outline_driven);
 
 END:
     s = best;
-    calculate_cost(s);
+    calculate_cost(s, outline_driven);
     return calculate_wirelength();
 }
 
@@ -234,6 +241,7 @@ intg SA::get_move_type(mt19937 &gen) {
     uniform_real_distribution<fp> gp_noise(0.0, 1.0);
     fp result = gp_noise(gen);
     return static_cast<intg>((result * 3.0));
+    // return 0;
 }
 
 fp SA::get_accept_prob(mt19937 &gen) {
