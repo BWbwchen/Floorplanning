@@ -1,0 +1,24 @@
+# 111062506 
+
+# Compile
+To compile the code:
+$ make
+
+To clean the object files:
+$ make clean
+
+# Run
+To run the my hw2 executable, 
+1. first cd into the src/ directory and compile the code:
+2. run with executable in bin/ directory:
+
+a. In src/ directory:
+usage: ../bin/hw2 [cell file] [net file] [output file]
+e.g. 
+$ ../bin/hw2 ../testcases/p2-1.cells ../testcases/p2-1.nets ../output/p2-1.out
+
+b. In bin/ directory:
+usage: ./hw2 [cell file] [net file] [output file]
+e.g. 
+$ ./hw2 ../testcases/p2-1.cells ../testcases/p2-1.nets ../output/p2-1.out
+
