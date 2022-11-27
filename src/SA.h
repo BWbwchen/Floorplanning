@@ -31,6 +31,14 @@ public:
         fp c;    // end temperature
         fp r;    // decrease constant
         fp t0;   // initial temperature
+
+        // fast sa
+        fp avg_up_hill_cost;  // fast sa avg up hill cost
+        fp avg_improve;       // fast sa avg improve at this temperature
+        fp fsa_c;             // fast sa c
+        fp fsa_t0;            // fast sa t0
+        intg fsa_k;           // fast sa k
+        intg iter;            // fast sa k
     public:
         SA_setting() = default;
     };
@@ -47,7 +55,7 @@ public:
     intg get_move_type(mt19937 &gen);
     fp get_accept_prob(mt19937 &gen);
     vector<intg> perturb(vector<intg> &s, intg move_type);
-    fp sa_scheduling(fp t0, SA_setting &setting);
+    fp sa_scheduling(fp t0, SA_setting &setting, bool outline_driven = false);
     Cell *build_tree(vector<intg> &e);
     intg calculate_wirelength();
 
@@ -75,10 +83,12 @@ public:
     Output solve() {
         get_initial_solution(sol);
 
-        sa_setting.c = 1;
+        sa_setting.c = 1.0;
         sa_setting.r = 0.95;
         sa_setting.k = 5;
         sa_setting.t0 = 1000.0;
+        sa_setting.fsa_c = 100.0;
+        sa_setting.fsa_k = 10;
 
         start_sa(sol, sa_setting, true);
         intg wl = start_sa(sol, sa_setting, false);

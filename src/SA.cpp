@@ -182,9 +182,12 @@ intg SA::start_sa(vector<intg> &s, SA_setting &setting, bool outline_driven) {
     if (best_cost == 0)
         goto END;
 
+    setting.iter = 0;
     do {
         do {
             MT = uphill = reject = 0;
+            setting.avg_improve = 0;
+            setting.avg_up_hill_cost = 0;
             do {
                 intg move_type = get_move_type(generator);
                 NE = perturb(E, move_type);
@@ -202,8 +205,14 @@ intg SA::start_sa(vector<intg> &s, SA_setting &setting, bool outline_driven) {
                 intg deltaCost = new_cost - cost;
                 if (deltaCost < 0 ||
                     get_accept_prob(generator) < exp(-1 * deltaCost / t0)) {
-                    if (deltaCost > 0)
+                    if (deltaCost > 0) {
                         uphill += 1;
+                        setting.avg_up_hill_cost += deltaCost;
+                        // setting.avg_up_hill_cost += new_cost;
+                    } else {
+                        setting.avg_improve += deltaCost;
+                    }
+
 
                     E = NE;
                     cost = new_cost;
@@ -222,8 +231,15 @@ intg SA::start_sa(vector<intg> &s, SA_setting &setting, bool outline_driven) {
                  << " and temperature: " << t0 << endl;
             cout << "Uphill/reject: " << uphill << " / " << reject << endl;
             cout << "N, MT: " << N << ", " << MT << endl;
-            t0 = sa_scheduling(t0, setting);
+
+            if (uphill != 0)
+                setting.avg_up_hill_cost /= uphill;
+            setting.avg_improve /= (MT - uphill - reject);
+            setting.avg_improve *= -1;
+            t0 = sa_scheduling(t0, setting, outline_driven);
         } while (reject / MT <= 0.95 && t0 >= setting.c);
+        cout << "reject/MT = " << reject << "/" << MT << endl;
+        cout << "t0 = " << t0 << endl;
     } while (outline_driven);
 
 END:
@@ -232,16 +248,39 @@ END:
     return calculate_wirelength();
 }
 
+fp SA::sa_scheduling(fp t0, SA_setting &setting, bool outline_driven) {
+    if (outline_driven)
+        return t0 * setting.r;
 
-fp SA::sa_scheduling(fp t0, SA_setting &setting) {
-    return t0 * setting.r;
-}
+
+    if (setting.iter == 0) {
+        setting.fsa_t0 = setting.t0 * setting.r;
+        setting.iter++;
+        return t0 * setting.r;
+        // setting.fsa_t0 = max(setting.avg_up_hill_cost, setting.t0);
+        // setting.iter++;
+        // return setting.fsa_t0;
+    } else if (setting.iter < setting.fsa_k) {
+        return (setting.fsa_t0 * setting.avg_improve) /
+               (static_cast<fp>(setting.iter++) * setting.fsa_c);
+    } else {
+        return (setting.fsa_t0 * setting.avg_improve) /
+               (static_cast<fp>(setting.iter++));
+    }
+    // return t0 * setting.r;
+}  // namespace std
 
 intg SA::get_move_type(mt19937 &gen) {
     uniform_real_distribution<fp> gp_noise(0.0, 1.0);
     fp result = gp_noise(gen);
-    return static_cast<intg>((result * 3.0));
-    // return 0;
+
+    // if (static_cast<intg>(result) == 1) {
+    //     return 0;
+    // } else {
+    //     return 2;
+    // }
+    // return static_cast<intg>((result * 3.0));
+    return 0;
 }
 
 fp SA::get_accept_prob(mt19937 &gen) {
