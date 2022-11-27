@@ -253,21 +253,33 @@ fp SA::sa_scheduling(fp t0, SA_setting &setting, bool outline_driven) {
         return t0 * setting.r;
 
 
-    if (setting.iter == 0) {
-        setting.fsa_t0 = setting.t0 * setting.r;
-        setting.iter++;
+    setting.iter++;
+
+    if (setting.iter < setting.threshold)
+        return setting.high_t;
+    else if (setting.iter == setting.threshold)
+        return setting.t0;
+    // else if (setting.iter < setting.local_search_threshold)
+    //     return t0 * setting.r;
+    // else
+    //     return t0 * 0.999;
+    else
         return t0 * setting.r;
-        // setting.fsa_t0 = max(setting.avg_up_hill_cost, setting.t0);
-        // setting.iter++;
-        // return setting.fsa_t0;
-    } else if (setting.iter < setting.fsa_k) {
-        return (setting.fsa_t0 * setting.avg_improve) /
-               (static_cast<fp>(setting.iter++) * setting.fsa_c);
-    } else {
-        return (setting.fsa_t0 * setting.avg_improve) /
-               (static_cast<fp>(setting.iter++));
-    }
-    // return t0 * setting.r;
+
+    // if (setting.iter == 0) {
+    //     setting.fsa_t0 = setting.t0 * setting.r;
+    //     setting.iter++;
+    //     return t0 * setting.r;
+    //     // setting.fsa_t0 = max(setting.avg_up_hill_cost, setting.t0 *
+    //     // setting.r); setting.iter++; return setting.fsa_t0;
+    // } else if (setting.iter < setting.fsa_k) {
+    //     return (setting.fsa_t0 * setting.avg_improve) /
+    //            (static_cast<fp>(setting.iter++) * setting.fsa_c);
+    // } else {
+    //     return (setting.fsa_t0 * setting.avg_improve) /
+    //            (static_cast<fp>(setting.iter++));
+    // }
+    return t0 * setting.r;
 }  // namespace std
 
 intg SA::get_move_type(mt19937 &gen) {

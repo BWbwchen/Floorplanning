@@ -10,7 +10,7 @@
 #include "cell.h"
 #include "output.h"
 
-const intg random_seed = 1000;
+const intg random_seed = 2000;
 
 namespace std {
 
@@ -39,6 +39,10 @@ public:
         fp fsa_t0;            // fast sa t0
         intg fsa_k;           // fast sa k
         intg iter;            // fast sa k
+
+        fp high_t;
+        intg threshold;
+
     public:
         SA_setting() = default;
     };
@@ -91,6 +95,14 @@ public:
         sa_setting.fsa_k = 10;
 
         start_sa(sol, sa_setting, true);
+
+        sa_setting.r = 0.995;
+        sa_setting.k = 5;
+        sa_setting.t0 = 1000.0;
+
+        sa_setting.high_t = 4000000.0;
+        sa_setting.threshold = 100;
+
         intg wl = start_sa(sol, sa_setting, false);
 
         return Output(&(data.cell_array), wl);
