@@ -14,6 +14,8 @@
 
 namespace std {
 
+const fp TIME_LIMIT = 550.0;
+
 void SA::get_initial_solution(vector<intg> &s) {
     intg now_width = 0;
     intg now_height = 0;
@@ -185,6 +187,16 @@ intg SA::start_sa(vector<intg> &s, SA_setting &setting, bool outline_driven) {
     setting.iter = 0;
     do {
         do {
+            if (!outline_driven) {
+                auto now = std::chrono::high_resolution_clock::now();
+                double tmp_duration =
+                    std::chrono::duration<double, std::ratio<1, 1>>(
+                        now - global_start)
+                        .count();
+                if (tmp_duration > TIME_LIMIT) {
+                    break;
+                }
+            }
             MT = uphill = reject = 0;
             setting.avg_improve = 0;
             setting.avg_up_hill_cost = 0;
@@ -229,8 +241,8 @@ intg SA::start_sa(vector<intg> &s, SA_setting &setting, bool outline_driven) {
             } while (uphill <= N && MT <= 2 * N);
             cout << "Epoch " << epoch++ << " with cost: " << best_cost
                  << " and temperature: " << t0 << endl;
-            cout << "Uphill/reject: " << uphill << " / " << reject << endl;
-            cout << "N, MT: " << N << ", " << MT << endl;
+            // cout << "Uphill/reject: " << uphill << " / " << reject << endl;
+            // cout << "N, MT: " << N << ", " << MT << endl;
 
             if (uphill != 0)
                 setting.avg_up_hill_cost /= uphill;

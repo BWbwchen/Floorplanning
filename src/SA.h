@@ -1,6 +1,7 @@
 #ifndef SA_H_
 #define SA_H_
 
+#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <random>
@@ -51,6 +52,8 @@ public:
 
     vector<Cell *> special_node;
 
+    std::chrono::time_point<std::chrono::high_resolution_clock> global_start;
+
     void get_initial_solution(vector<intg> &s);
     intg start_sa(vector<intg> &s,
                   SA_setting &setting,
@@ -85,6 +88,7 @@ public:
         generator.seed(random_seed);
     }
     Output solve() {
+        global_start = std::chrono::high_resolution_clock::now();
         get_initial_solution(sol);
 
         sa_setting.c = 1.0;
