@@ -11,7 +11,7 @@
 #include "cell.h"
 #include "output.h"
 
-const intg random_seed = 2000;
+const intg random_seed = 1000;
 
 namespace std {
 
@@ -107,7 +107,17 @@ public:
         sa_setting.high_t = 4000000.0;
         sa_setting.threshold = 100;
 
-        intg wl = start_sa(sol, sa_setting, false);
+        start_sa(sol, sa_setting, false);
+
+        sa_setting.c = 1.0;
+        sa_setting.r = 0.95;
+        sa_setting.k = 5;
+        sa_setting.t0 = 1000.0;
+        sa_setting.fsa_c = 100.0;
+        sa_setting.fsa_k = 10;
+
+        // remember to legalize the solution
+        intg wl = start_sa(sol, sa_setting, true);
 
         return Output(&(data.cell_array), wl);
     }

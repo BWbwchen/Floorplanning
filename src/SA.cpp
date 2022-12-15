@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <random>
@@ -14,7 +15,7 @@
 
 namespace std {
 
-const fp TIME_LIMIT = 550.0;
+const fp TIME_LIMIT = 520.0;
 
 void SA::get_initial_solution(vector<intg> &s) {
     intg now_width = 0;
@@ -24,8 +25,17 @@ void SA::get_initial_solution(vector<intg> &s) {
     intg row_count = 0;
     intg horizon_count = 0;
 
+    vector<int> sorted(data.cell_array.size(), 0);
+    for (int i = 0; i < data.cell_array.size(); ++i) {
+        sorted[i] = i;
+    }
+
+    sort(sorted.begin(), sorted.end(), [&](const int &l, const int &r) {
+        return data.cell_array[l].height > data.cell_array[r].height;
+    });
+
     for (intg i = 0; i < num_cell; ++i) {
-        Cell &c = data.cell_array[i];
+        Cell &c = data.cell_array[sorted[i]];
         now_width += c.width;
         if (now_width > outline_limit) {
             row_count++;
@@ -39,7 +49,7 @@ void SA::get_initial_solution(vector<intg> &s) {
             col_count = 0;
         }
 
-        s.emplace_back(i);
+        s.emplace_back(sorted[i]);
 
         col_count++;
 
@@ -181,21 +191,22 @@ intg SA::start_sa(vector<intg> &s, SA_setting &setting, bool outline_driven) {
 
     fp t0 = setting.t0;
     intg epoch = 0;
-    if (best_cost == 0)
+    if (best_cost == 0) {
+        cout << "=================== status ====================" << endl;
+        cout << "We don't need fit outline the initial solution." << endl;
         goto END;
+    }
 
     setting.iter = 0;
     do {
         do {
-            if (!outline_driven) {
-                auto now = std::chrono::high_resolution_clock::now();
-                double tmp_duration =
-                    std::chrono::duration<double, std::ratio<1, 1>>(
-                        now - global_start)
-                        .count();
-                if (tmp_duration > TIME_LIMIT) {
-                    break;
-                }
+            auto now = std::chrono::high_resolution_clock::now();
+            double tmp_duration =
+                std::chrono::duration<double, std::ratio<1, 1>>(now -
+                                                                global_start)
+                    .count();
+            if (tmp_duration > TIME_LIMIT) {
+                goto END;
             }
             MT = uphill = reject = 0;
             setting.avg_improve = 0;
