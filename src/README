@@ -8,17 +8,17 @@ To clean the object files:
 $ make clean
 
 # Run
-To run the my hw2 executable, 
+To run the my hw3 executable, 
 1. first cd into the src/ directory and compile the code:
 2. run with executable in bin/ directory:
 
 a. In src/ directory:
-usage: ../bin/hw2 [cell file] [net file] [output file]
+usage: ./../bin/hw3 [hardblocks file] [net file] [pl file] [output file] [dead space ratio]
 e.g. 
-$ ../bin/hw2 ../testcases/p2-1.cells ../testcases/p2-1.nets ../output/p2-1.out
+$ ./../bin/hw2 ../testcases/n100.hardblocks ../testcases/n100.nets ../testcases/n100.pl ../output/n100.floorplan 0.15
 
 b. In bin/ directory:
-usage: ./hw2 [cell file] [net file] [output file]
+usage: ./bin/hw3 [hardblocks file] [net file] [pl file] [output file] [dead space ratio]
 e.g. 
-$ ./hw2 ../testcases/p2-1.cells ../testcases/p2-1.nets ../output/p2-1.out
+$ ./hw2 ../testcases/n100.hardblocks ../testcases/n100.nets ../testcases/n100.pl ../output/n100.floorplan 0.15
 
